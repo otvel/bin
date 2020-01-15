@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+FILE1=$1
+FILE2=$2
+
+diff -y --suppress-common-lines <(grep '>' $FILE1 | awk '{print $1}' | sort) <(grep '>' $FILE2 | awk '{print $1}' | sort)
+
