@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import gzip
 from argparse import ArgumentParser
 
@@ -26,17 +28,19 @@ def main():
     arg_parser.add_argument('-i', '--input', required=True,
                             help='FASTA to parse')
     arg_parser.add_argument('-t', '--target', required=True,
-                            help='Target header')
+                            help="Target sequence's header")
     arg_parser.add_argument('-o', '--output', required=True,
                             help='Output filename')
-    arg_parser.add_argument('-oh', '--output_header',
-                            help='Name used in output header')
-    arg_parser.add_argument('-U', '--uppercase', action='store_true',
-                            help='Whether to convert lowercase to uppercase')
     arg_parser.add_argument('-s', '--start',
-                            help='Start coordinate for splicing')
+                            help='Start coordinate for splicing (0-index) (optional)')
     arg_parser.add_argument('-e', '--end',
-                            help='End coordinate for splicing')
+                            help='End coordinate for splicing (0-index) (optional)')
+    arg_parser.add_argument('-c', '--coordinates', action='store_true',
+                            help='Include coordinates in output header (optional)')
+    arg_parser.add_argument('-U', '--uppercase', action='store_true',
+                            help='Convert all characters to uppercase (optional)')
+    arg_parser.add_argument('-oh', '--output_header',
+                            help='Text used in output header (optional)')
     args = arg_parser.parse_args()
     print('[INFO] Working...')
     try:
@@ -51,18 +55,25 @@ def main():
         for header, seq in seqs:
             if args.output_header:
                 header = args.output_header
-                if args.start and args.end:
-                    fh.write(f'>{i}_{header}__{args.start}__{args.end}\n'
-                             f'{seq[int(args.start):int(args.end)]}\n')
+            if args.start and args.end:
+                seq = seq[int(args.start):int(args.end)]
+            elif args.start:
+                seq = seq[int(args.start):]
+            elif args.end:
+                seq = seq[:int(args.end)]
+            if args.coordinates:
+                if args.start:
+                    start = args.start
                 else:
-                    fh.write(f'>{i}_{header}\n{seq}\n')
-                i += 1
+                    start = 0
+                if args.end:
+                    end = args.end
+                else:
+                    end = len(seq)
+                fh.write(f'>{header}_{start}_{end}\n')
             else:
-                if args.start and args.end:
-                    fh.write(f'>{header}__{args.start}__{args.end}\n'
-                             f'{seq[int(args.start):int(args.end)]}\n')
-                else:
-                    fh.write(f'>{header}\n{seq}\n')
+                fh.write(f'>{header}\n')
+            fh.write(f'{seq}\n')
 
     print('[INFO] Done!')
 
