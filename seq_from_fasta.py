@@ -39,6 +39,8 @@ def main():
                             help='Include coordinates in output header (optional)')
     arg_parser.add_argument('-U', '--uppercase', action='store_true',
                             help='Convert all characters to uppercase (optional)')
+    arg_parser.add_argument('-l', '--line', default=-1,
+                            help='Output line length, default is one line (optional)')
     arg_parser.add_argument('-oh', '--output_header',
                             help='Text used in output header (optional)')
     args = arg_parser.parse_args()
@@ -53,14 +55,17 @@ def main():
     with open(args.output, 'w') as fh:
         i = 1
         for header, seq in seqs:
+    
             if args.output_header:
                 header = args.output_header
+        
             if args.start and args.end:
                 seq = seq[int(args.start):int(args.end)]
             elif args.start:
                 seq = seq[int(args.start):]
             elif args.end:
                 seq = seq[:int(args.end)]
+    
             if args.coordinates:
                 if args.start:
                     start = args.start
@@ -73,7 +78,13 @@ def main():
                 fh.write(f'>{header}_{start}_{end}\n')
             else:
                 fh.write(f'>{header}\n')
-            fh.write(f'{seq}\n')
+    
+            if int(args.line) < 1:
+                fh.write(seq + '\n')
+            else:
+                for i in range(0, len(seq), int(args.line)):
+                    line = seq[i:i+int(args.line)]
+                    fh.write(line + '\n')
 
     print('[INFO] Done!')
 
